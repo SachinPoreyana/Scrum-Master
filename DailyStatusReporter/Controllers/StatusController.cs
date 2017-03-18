@@ -8,15 +8,22 @@ using System.Web.Http;
 
 namespace ScrumMaster.Controllers
 {
-    [Authorize]
+    //[Authorize]
     public class StatusReportController : ApiController
     {
         public void Post([FromBodyAttribute] StatusReport Status)
         {
-            using (var employeeDBEntities = new EmployeeDBEntities())
+            try
             {
-                employeeDBEntities.StatusReports.Add(Status);
-                employeeDBEntities.SaveChanges();
+                using (var employeeDBEntities = new EmployeeDBEntities())
+                {
+                    employeeDBEntities.StatusReports.Add(Status);
+                    employeeDBEntities.SaveChanges();
+                }
+            }
+            catch (Exception e)
+            {
+                throw e;
             }
         }
 
@@ -48,7 +55,7 @@ namespace ScrumMaster.Controllers
 
         }
 
-        public IEnumerable<StatusReport> GetStatusReport(int id)
+        /*public IEnumerable<StatusReport> GetStatusReport(int id)
         {
             using (var EmployeeDBEntities = new EmployeeDBEntities())
             {
@@ -56,7 +63,7 @@ namespace ScrumMaster.Controllers
                 return EmployeeDBEntities.StatusReports.Where(x => x.ID == id).ToList();
             }
 
-        }
+        }*/
 
         public void DeleteStatusReport(int id)
         {
@@ -69,13 +76,13 @@ namespace ScrumMaster.Controllers
             }
         }
 
-        public void GetStatusReporttest()
+       /* public void GetStatusReporttest()
         {
             DailyMailService mailScheduler = new DailyMailService();
             mailScheduler.SendMail("sachinporeyana@yahoo.in", "steppershotty@gmail.com", "Test email", "Hello");
 
 
-        }
+        }*/
 
     }
 }

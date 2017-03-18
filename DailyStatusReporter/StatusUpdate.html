@@ -72,7 +72,7 @@
                                 #
                             </th>
                             <th class="text-center">
-                                User Story
+                                UserStory
                             </th>
                             <th class="text-center">
                                 Task
@@ -81,7 +81,7 @@
                                 Description
                             </th>
                             <th class="text-center">
-                                Completion State
+                                CompletionStage
                             </th>
                         </tr>
                     </thead>
@@ -91,7 +91,7 @@
                                 1
                             </td>
                             <td>
-                                <input type="text" name='userStory0' placeholder='UserStory' class="form-control" />
+                                <input type="text" name='userStory0' placeholder='User Story' class="form-control" />
                             </td>
                             <td>
                                 <input type="text" name='task0' placeholder='Task' class="form-control" />
@@ -104,12 +104,17 @@
                             </td>
 
                         </tr>
-                        <tr id='addr1'></tr>
                     </tbody>
                 </table>
             </div>
         </div>
         <a id="add_row" class="btn btn-default pull-left">Add Row</a><a id='delete_row' class="pull-right btn btn-default">Delete Row</a>
+        <div class="row">
+            <div class="col-xs-4"></div>
+            <div class="col-xs-4"><a id = "save_status" class = "btn btn-default"> Save Status</a></div>
+            <div class="col-xs-4"></div>
+        </div>
+        
     </div>
     
     <script src="Scripts/jquery-1.10.2.min.js"></script>
@@ -162,7 +167,7 @@
                     });
                 });
                 $('#linkClose').click(function () {
-                        $('#divError').hide('fade');
+                    $('#divError').hide('fade');
                 });
                 $('#errorModal').on('hidden.bs.modal', function () {
                     window.location.href = "Login.html";
@@ -179,7 +184,72 @@
                         i--;
                     }
                 });
-            });
-        </script>
+                $("#save_status").click(function () {
+                    var r = confirm("Save status?");
+                    if (r == true) {
+                        var cols = $("#tab_logic thead tr th").map(function () { return (($(this).text()).replace(/\n/ig, '')).trim() })
+                        var headers = cols.splice(1, 5);
+                        var tableObject = $("#tab_logic tbody tr").map(function (i) {
+                            var row = {};
+                            $(this).find('td input').each(function (i) {
+                                var rowname = headers[i];
+                                var texts = (($(this).val()).replace(/\n/ig, '')).trim();
+                                row[rowname] = texts;
+
+                            })
+                            var targetDate = new Date();
+                            targetDate.setDate(targetDate.getDate());
+
+                            var dd = targetDate.getDate();
+                            var mm = targetDate.getMonth() + 1; // 0 is January, so we must add 1
+                            var yyyy = targetDate.getFullYear();
+
+                            var dateString = dd + "/" + mm + "/" + yyyy;
+                            row["ID"] = 0;
+                            row["Date"] = dateString;
+                            row["NeedHelp"] = localStorage.getItem('userName');;
+                            row["EmpId"] = 000001;
+
+                            return row;
+                        }).get();
+                        tableObject.forEach(function (arrayObject) {
+                            if (arrayObject != null) {
+                                var statusInJson = JSON.stringify(arrayObject);
+
+
+                                $.ajax({
+                                    url: '/api/StatusReport',
+                                    method: 'POST',
+                                    contentType: "application/json",
+                                    data: statusInJson,
+                                    headers: {
+                                        'Authorization': 'bearer '
+                                            + localStorage.getItem("accessToken")
+                                    },
+                                    success: function (JQXHR) {
+                                    },
+                                    error: function (jQXHR) {
+                                        // If status code is 401, access token expired, so
+                                        // redirect the user to the login page
+                                        if (jQXHR.status == "401") {
+                                            $('#errorModal').modal('show');
+                                        }
+                                        else {
+                                            $('#divErrorText').text(jQXHR.responseText);
+                                            $('#divError').show('fade');
+                                        }
+                                    }
+                                });
+                            }
+
+                        })
+                    } else {
+                        
+                    }
+                    
+
+                });
+            })
+         </script>
 </body>
 </html>

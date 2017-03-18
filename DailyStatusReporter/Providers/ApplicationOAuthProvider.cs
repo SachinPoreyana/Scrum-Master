@@ -38,6 +38,11 @@ namespace DailyStatusReporter.Providers
                 context.SetError("invalid_grant", "The user name or password is incorrect.");
                 return;
             }
+            if(!user.EmailConfirmed)
+            {
+                context.SetError("Your email Id is not yet confirmed. Please click on the link sent to your email ID "+ user.UserName);
+                return;
+            }
 
             ClaimsIdentity oAuthIdentity = await user.GenerateUserIdentityAsync(userManager,
                OAuthDefaults.AuthenticationType);

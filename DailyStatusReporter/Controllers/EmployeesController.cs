@@ -15,7 +15,6 @@ namespace DailyStatusReporter.Controllers
             using (EmployeeDBEntities employeeDbEntities = new EmployeeDBEntities())
             {
                 DailyMailService mailScheduler = new DailyMailService();
-                mailScheduler.SendMail("madanmk07@yahoo.com", "steppershotty@gmail.com", "Test email", "Hello");
                 return employeeDbEntities.Employees?.ToList();
             }
         }

@@ -6,7 +6,6 @@ using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
-using System.Web.Http.ModelBinding;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
@@ -16,6 +15,8 @@ using Microsoft.Owin.Security.OAuth;
 using DailyStatusReporter.Models;
 using DailyStatusReporter.Providers;
 using DailyStatusReporter.Results;
+using System.Web.Http.Routing;
+using System.Web.Routing;
 
 namespace DailyStatusReporter.Controllers
 {
@@ -25,16 +26,18 @@ namespace DailyStatusReporter.Controllers
     {
         private const string LocalLoginProvider = "Local";
         private ApplicationUserManager _userManager;
+        private SignInManager<ApplicationUser, string> _signInManager;
 
         public AccountController()
         {
         }
 
         public AccountController(ApplicationUserManager userManager,
-            ISecureDataFormat<AuthenticationTicket> accessTokenFormat)
+            ISecureDataFormat<AuthenticationTicket> accessTokenFormat, SignInManager<ApplicationUser, string> singInManager)
         {
             UserManager = userManager;
             AccessTokenFormat = accessTokenFormat;
+            _signInManager = singInManager;
         }
 
         public ApplicationUserManager UserManager
@@ -331,12 +334,52 @@ namespace DailyStatusReporter.Controllers
             var user = new ApplicationUser() { UserName = model.Email, Email = model.Email };
 
             IdentityResult result = await UserManager.CreateAsync(user, model.Password);
+            if (result.Succeeded)
+            {
+                string callbackUrl = await SendEmailConfirmationTokenAsync(user.Id, "Confirm your account");
+            }
+            //AddErrors(result);
 
             if (!result.Succeeded)
             {
                 return GetErrorResult(result);
             }
 
+            return Ok();
+        }
+
+        private async Task<string> SendEmailConfirmationTokenAsync(string userID, string subject)
+        {
+            string code = await UserManager.GenerateEmailConfirmationTokenAsync(userID);
+           // var newRouteValues = new RouteValueDictionary(new { userId = userID, code = code });
+            //newRouteValues.Add("httproute", true);
+            System.Web.Mvc.UrlHelper urlHelper = new System.Web.Mvc.UrlHelper(HttpContext.Current.Request.RequestContext, RouteTable.Routes);
+            string callbackUrl = urlHelper.Action(
+                "ConfirmEmail",
+                "Account",
+                new { userId = userID, code = code },
+                HttpContext.Current.Request.Url.Scheme
+                );
+            string emailBody = "Please confirm your account by clicking <a href=\"" + callbackUrl + "\">here</a>";
+            DailyMailService dailyMail = new DailyMailService();
+            string username = HttpContext.Current.GetOwinContext().GetUserManager<ApplicationUserManager>().FindById(userID).UserName;
+            dailyMail.SendMailWithoutAttachment(username, "stepperShotty@gmail.com", "confirm Email", emailBody);
+            
+            //await UserManager.SendEmailAsync(userID, subject,
+               //"Please confirm your account by clicking <a href=\"" + callbackUrl + "\">here</a>");
+
+            return callbackUrl;
+        }
+
+        [AllowAnonymous]
+        [Route("ConfirmEmail")]
+        public async Task<IHttpActionResult> GetConfirmEmail(string userId, string code)
+        {
+            var result = await UserManager.ConfirmEmailAsync(userId, code);
+            if (!result.Succeeded)
+            {
+                return GetErrorResult(result);
+            }
             return Ok();
         }
 

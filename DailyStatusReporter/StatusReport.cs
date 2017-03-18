@@ -11,7 +11,8 @@ namespace DailyStatusReporter
 {
     using System;
     using System.Collections.Generic;
-    
+    using System.ComponentModel.DataAnnotations;
+
     public partial class StatusReport
     {
         public int ID { get; set; }
@@ -20,6 +21,7 @@ namespace DailyStatusReporter
         public string Task { get; set; }
         public string Description { get; set; }
         public string CompletionStage { get; set; }
+        [StringLength(50, ErrorMessage = "Maximum length is 50")]
         public string NeedHelp { get; set; }
         public Nullable<int> EmpId { get; set; }
     }
