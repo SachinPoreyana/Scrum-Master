@@ -15,7 +15,7 @@ namespace DailyStatusReporter
                 message.Attachments.Add(statusExcel);
                 SmtpClient smtpClient = new SmtpClient("smtp.gmail.com", 587);
                 smtpClient.EnableSsl = true;
-                smtpClient.Credentials = new System.Net.NetworkCredential("steppershofdsfdfdfdsftty@gmail.com", "");
+                smtpClient.Credentials = new System.Net.NetworkCredential("steppershofdsfdfdfdsffdfdtty@gmail.com", "");
                 smtpClient.Send(message);
             }
             catch
